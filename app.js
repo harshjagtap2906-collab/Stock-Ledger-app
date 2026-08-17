@@ -159,7 +159,10 @@ function rowHtml(i){
   const [ink, bg] = catColor(i.category);
   return `
   <div class="row" data-id="${i.id}">
-    <div class="mname"><input type="text" value="${escapeHtml(i.name)}" data-field="name" data-id="${i.id}"></div>
+    <div class="mname">
+      <input type="text" value="${escapeHtml(i.name)}" data-field="name" data-id="${i.id}">
+      <span class="catpill catpill-mobile" style="color:${ink};background:${bg};">${escapeHtml(i.category)}</span>
+    </div>
     <div class="colcat"><span class="catpill" style="color:${ink};background:${bg};">${escapeHtml(i.category)}</span></div>
     <div class="qtybox">
       <button data-act="dec" data-id="${i.id}" aria-label="Decrease quantity">−</button>
