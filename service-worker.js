@@ -1,4 +1,4 @@
-const CACHE_NAME = 'stock-ledger-v5';
+const CACHE_NAME = 'stock-ledger-v6';
 const ASSETS = [
   './',
   './index.html',
