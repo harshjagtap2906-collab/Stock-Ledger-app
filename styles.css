@@ -110,6 +110,7 @@ header{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;
   font-family:var(--font-mono);font-size:11px;font-weight:600;
   border-radius:5px;padding:4px 8px;display:inline-block;width:fit-content;
 }
+.catpill-mobile{display:none;}
 
 .qtybox{display:flex;align-items:center;gap:6px;}
 .qtybox button{
@@ -147,6 +148,8 @@ header{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;
   .row{grid-template-columns:1fr 96px 32px;gap:6px;padding:12px 12px;}
   .row .colcat{display:none;}
   .row.head .colcat{display:none;}
+  .mname{display:flex;flex-direction:column;align-items:flex-start;gap:4px;}
+  .catpill-mobile{display:inline-block;font-size:10px;padding:3px 7px;}
   .qtybox{gap:4px;}
   .qtybox button{width:24px;height:24px;flex-shrink:0;}
   .qtybox .n{min-width:22px;font-size:13px;}
