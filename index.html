@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Stock Ledger</title>
+<meta name="theme-color" content="#2F5E58">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Stock Ledger">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="loginwrap" id="loginScreen">
+  <div class="logincard">
+    <div class="loginbrand">
+      <img src="icons/icon-192.png" alt="Harsh Heater's" class="logo-img">
+      <h1>Stock Ledger</h1>
+      <span class="company">Harsh Heater's</span>
+    </div>
+    <div class="field">
+      <label for="loginEmail">Email</label>
+      <input type="email" id="loginEmail" autocomplete="username" placeholder="you@harshheaters.com">
+    </div>
+    <div class="field">
+      <label for="loginPassword">Password</label>
+      <input type="password" id="loginPassword" autocomplete="current-password" placeholder="Enter your password">
+    </div>
+    <button class="addbtn loginbtn" id="loginBtn">Log in</button>
+    <div class="err" id="loginErr" style="display:none;"></div>
+    <p class="loginhint">Don't have an account? Ask whoever manages this app to create one for you.</p>
+  </div>
+</div>
+
+<div class="wrap" id="appScreen" style="display:none;">
+
+  <header>
+    <div class="brand">
+      <img src="icons/icon-192.png" alt="Harsh Heater's" class="logo-img">
+      <div class="brandtext">
+        <h1>Stock Ledger</h1>
+        <span class="company">Harsh Heater's</span>
+      </div>
+      <span class="tag" id="statusTag">offline-ready</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="n" id="statTotal">0</div><div class="l">materials</div></div>
+      <div class="stat warn"><div class="n" id="statOut">0</div><div class="l">out of stock</div></div>
+    </div>
+  </header>
+
+  <div class="addbar">
+    <div class="field name">
+      <label for="fName">Material</label>
+      <input type="text" id="fName" placeholder="e.g. Plywood sheet 4x8">
+    </div>
+    <div class="field cat">
+      <label for="fCat">Category</label>
+      <input type="text" id="fCat" list="catList" placeholder="e.g. Lumber">
+      <datalist id="catList"></datalist>
+    </div>
+    <div class="field qty">
+      <label for="fQty">Quantity</label>
+      <input type="number" id="fQty" value="1" min="0">
+    </div>
+    <button class="addbtn" id="addBtn">Add material</button>
+    <div class="err" id="addErr" style="display:none;"></div>
+  </div>
+
+  <div class="toolbar">
+    <input type="text" id="search" placeholder="Search materials...">
+    <select id="catFilter"><option value="">All categories</option></select>
+    <select id="sortBy">
+      <option value="name">Sort: name</option>
+      <option value="qty-asc">Sort: quantity (low first)</option>
+      <option value="qty-desc">Sort: quantity (high first)</option>
+      <option value="category">Sort: category</option>
+    </select>
+  </div>
+
+  <div class="ledger">
+    <div class="row head">
+      <div>Material</div>
+      <div class="colcat">Category</div>
+      <div>Quantity</div>
+      <div></div>
+    </div>
+    <div id="rows"></div>
+  </div>
+
+  <div class="sharebar">
+    <button class="ghostbtn" id="exportBtn">Export to Excel</button>
+    <button class="ghostbtn" id="importBtn">Import</button>
+    <input type="file" id="importFile" accept=".csv,.json,application/vnd.ms-excel,application/json" style="display:none;">
+    <span class="sharehint">Export opens straight in Excel. Import reads that same file back in — great for moving data between devices or teammates, no network needed.</span>
+  </div>
+
+  <div class="foot" id="foot">Loading inventory…</div>
+
+  <button class="ghostbtn logoutbtn" id="logoutBtn">Log out</button>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

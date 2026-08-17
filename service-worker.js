@@ -1,0 +1,58 @@
+const CACHE_NAME = 'stock-ledger-v3';
+const ASSETS = [
+  './',
+  './index.html',
+  './styles.css',
+  './app.js',
+  './firebase-config.js',
+  './manifest.json',
+  './icons/icon-192.png',
+  './icons/icon-512.png',
+  'https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js',
+  'https://www.gstatic.com/firebasejs/10.13.1/firebase-auth-compat.js',
+  'https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore-compat.js'
+];
+
+const BYPASS_HOSTS = [
+  'firestore.googleapis.com',
+  'identitytoolkit.googleapis.com',
+  'securetoken.googleapis.com',
+  'www.googleapis.com'
+];
+
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS)).catch(() => {})
+  );
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
+    )
+  );
+  self.clients.claim();
+});
+
+self.addEventListener('fetch', (event) => {
+  if(event.request.method !== 'GET') return;
+  const url = new URL(event.request.url);
+  if(BYPASS_HOSTS.includes(url.hostname)) return;
+
+  event.respondWith(
+    caches.match(event.request).then((cached) => {
+      if(cached) return cached;
+      return fetch(event.request)
+        .then((response) => {
+          if(response && response.status === 200){
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          }
+          return response;
+        })
+        .catch(() => cached);
+    })
+  );
+});
