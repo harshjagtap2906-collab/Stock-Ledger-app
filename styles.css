@@ -178,3 +178,26 @@ header{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;
 .loginbtn{width:100%;margin-top:6px;}
 .loginhint{font-size:12px;color:var(--ink-faint);margin:16px 0 0;text-align:center;line-height:1.5;}
 .logoutbtn{margin-top:16px;display:block;}
+
+.modalbg{
+  position:fixed;inset:0;background:rgba(38,38,31,0.5);
+  display:flex;align-items:center;justify-content:center;padding:20px;z-index:50;
+}
+.modalcard{
+  background:var(--card);border-radius:12px;padding:24px;width:100%;max-width:380px;
+  box-shadow:0 12px 32px rgba(0,0,0,0.18);
+}
+.modaltitle{font-family:var(--font-display);font-weight:700;font-size:17px;margin-bottom:8px;}
+.modalbody{font-size:14px;color:var(--ink-soft);line-height:1.5;margin-bottom:20px;}
+.modalbtns{display:flex;gap:10px;justify-content:flex-end;}
+.dangerbtn{background:var(--danger);}
+
+.historycard{max-width:480px;}
+.historylist{max-height:50vh;overflow-y:auto;margin-bottom:16px;}
+.hitem{
+  padding:10px 0;border-bottom:1px dashed var(--line);font-size:13px;
+}
+.hitem:last-child{border-bottom:none;}
+.hitem .haction{font-weight:600;color:var(--ink);}
+.hitem .hmeta{font-size:11px;color:var(--ink-faint);margin-top:3px;font-family:var(--font-mono);}
+.hempty{padding:30px 0;text-align:center;color:var(--ink-faint);font-size:13px;}
