@@ -94,6 +94,7 @@
   <div class="sharebar">
     <button class="ghostbtn" id="exportBtn">Export to Excel</button>
     <button class="ghostbtn" id="importBtn">Import</button>
+    <button class="ghostbtn" id="historyBtn">History</button>
     <input type="file" id="importFile" accept=".csv,.json,application/vnd.ms-excel,application/json" style="display:none;">
     <span class="sharehint">Export opens straight in Excel. Import reads that same file back in — great for moving data between devices or teammates, no network needed.</span>
   </div>
@@ -102,6 +103,27 @@
 
   <button class="ghostbtn logoutbtn" id="logoutBtn">Log out</button>
 
+</div>
+
+<div class="modalbg" id="confirmModal" style="display:none;">
+  <div class="modalcard">
+    <div class="modaltitle">Remove this material?</div>
+    <div class="modalbody" id="confirmModalText">Are you sure you want to remove this from your inventory?</div>
+    <div class="modalbtns">
+      <button class="ghostbtn" id="confirmNo">No</button>
+      <button class="addbtn dangerbtn" id="confirmYes">Yes, remove</button>
+    </div>
+  </div>
+</div>
+
+<div class="modalbg" id="historyModal" style="display:none;">
+  <div class="modalcard historycard">
+    <div class="modaltitle">Activity history</div>
+    <div class="historylist" id="historyList">Loading…</div>
+    <div class="modalbtns">
+      <button class="ghostbtn" id="historyClose">Close</button>
+    </div>
+  </div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
