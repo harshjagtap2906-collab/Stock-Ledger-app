@@ -83,17 +83,49 @@ async function init(){
   }
 }
 
+function currentUserLabel(){
+  const user = firebase.auth().currentUser;
+  return user && user.email ? user.email : 'Someone';
+}
+
+async function logHistory(action, description){
+  if(!db) return;
+  try{
+    await db.collection('history').add({
+      action,
+      description,
+      user: currentUserLabel(),
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  }catch(e){
+    // History logging failures shouldn't block the actual inventory action.
+  }
+}
+
 async function addItem(name, cat, qty){
   const data = { name: name.trim(), category: (cat.trim() || 'Uncategorized'), qty: Math.max(0, Math.round(qty)) };
   await db.collection('materials').doc(uid()).set(data);
+  logHistory('added', `Added "${data.name}" — ${data.qty} in ${data.category}`);
 }
 
 async function updateItem(id, patch){
+  const before = items.find(i => i.id === id);
   await db.collection('materials').doc(id).update(patch);
+  if(!before) return;
+  if('qty' in patch && patch.qty !== before.qty){
+    logHistory('qty_changed', `"${before.name}" quantity changed from ${before.qty} to ${patch.qty}`);
+  }
+  if('name' in patch && patch.name !== before.name){
+    logHistory('renamed', `Renamed "${before.name}" to "${patch.name}"`);
+  }
 }
 
 async function deleteItem(id){
+  const item = items.find(i => i.id === id);
   await db.collection('materials').doc(id).delete();
+  if(item){
+    logHistory('deleted', `Removed "${item.name}" (was ${item.qty} in ${item.category})`);
+  }
 }
 
 async function clearAll(){
@@ -184,7 +216,7 @@ function attachRowHandlers(){
     };
   });
   document.querySelectorAll('.delbtn').forEach(btn => {
-    btn.onclick = () => deleteItem(btn.dataset.id);
+    btn.onclick = () => openConfirmModal(btn.dataset.id);
   });
   document.querySelectorAll('.mname input').forEach(inp => {
     inp.onchange = () => {
@@ -328,6 +360,7 @@ document.getElementById('importFile').onchange = async (e) => {
     for(const raw of incoming){
       await db.collection('materials').doc(uid()).set(raw);
     }
+    logHistory('imported', `Imported ${incoming.length} material(s) from ${file.name}${merge ? ' (merged)' : ' (replaced list)'}`);
   }catch(err){
     alert('Could not read that file. Use a file exported from this app (.csv or .json).');
   }
@@ -377,5 +410,68 @@ document.getElementById('loginBtn').onclick = async () => {
 document.getElementById('logoutBtn').onclick = () => {
   firebase.auth().signOut();
 };
+
+let pendingDeleteId = null;
+
+function openConfirmModal(id){
+  const item = items.find(i => i.id === id);
+  pendingDeleteId = id;
+  document.getElementById('confirmModalText').textContent = item
+    ? `Are you sure you want to remove "${item.name}" from your inventory? This can't be undone.`
+    : `Are you sure you want to remove this from your inventory?`;
+  document.getElementById('confirmModal').style.display = 'flex';
+}
+
+function closeConfirmModal(){
+  pendingDeleteId = null;
+  document.getElementById('confirmModal').style.display = 'none';
+}
+
+document.getElementById('confirmNo').onclick = closeConfirmModal;
+document.getElementById('confirmYes').onclick = () => {
+  if(pendingDeleteId) deleteItem(pendingDeleteId);
+  closeConfirmModal();
+};
+document.getElementById('confirmModal').addEventListener('click', (e) => {
+  if(e.target.id === 'confirmModal') closeConfirmModal();
+});
+
+let historyUnsubscribe = null;
+
+function formatHistoryTime(ts){
+  if(!ts || !ts.toDate) return 'just now';
+  return ts.toDate().toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+}
+
+function openHistoryModal(){
+  document.getElementById('historyModal').style.display = 'flex';
+  const listEl = document.getElementById('historyList');
+  listEl.innerHTML = 'Loading…';
+  if(historyUnsubscribe) historyUnsubscribe();
+  historyUnsubscribe = db.collection('history').orderBy('timestamp', 'desc').limit(200).onSnapshot(
+    (snapshot) => {
+      if(snapshot.empty){
+        listEl.innerHTML = '<div class="hempty">No activity yet.</div>';
+        return;
+      }
+      listEl.innerHTML = snapshot.docs.map(d => {
+        const h = d.data();
+        return `<div class="hitem"><div class="haction">${escapeHtml(h.description || '')}</div><div class="hmeta">${escapeHtml(h.user || 'Someone')} · ${formatHistoryTime(h.timestamp)}</div></div>`;
+      }).join('');
+    },
+    () => { listEl.innerHTML = '<div class="hempty">Could not load history.</div>'; }
+  );
+}
+
+function closeHistoryModal(){
+  document.getElementById('historyModal').style.display = 'none';
+  if(historyUnsubscribe){ historyUnsubscribe(); historyUnsubscribe = null; }
+}
+
+document.getElementById('historyBtn').onclick = openHistoryModal;
+document.getElementById('historyClose').onclick = closeHistoryModal;
+document.getElementById('historyModal').addEventListener('click', (e) => {
+  if(e.target.id === 'historyModal') closeHistoryModal();
+});
 
 init();
