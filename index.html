@@ -105,10 +105,31 @@
 
 </div>
 
+<div class="modalbg" id="deductModal" style="display:none;">
+  <div class="modalcard">
+    <div class="modaltitle">Who's this stock going to?</div>
+    <div class="modalbody" id="deductModalText">Reducing quantity by 1.</div>
+    <div class="field">
+      <label for="deductRecipient">Given / sold to <span class="req">*</span></label>
+      <input type="text" id="deductRecipient" placeholder="e.g. Ramesh Traders">
+    </div>
+    <div class="err" id="deductErr" style="display:none;"></div>
+    <div class="modalbtns">
+      <button class="ghostbtn" id="deductCancel">Cancel</button>
+      <button class="addbtn" id="deductConfirm">Confirm</button>
+    </div>
+  </div>
+</div>
+
 <div class="modalbg" id="confirmModal" style="display:none;">
   <div class="modalcard">
     <div class="modaltitle">Remove this material?</div>
     <div class="modalbody" id="confirmModalText">Are you sure you want to remove this from your inventory?</div>
+    <div class="field">
+      <label for="confirmRecipient">Given / sold to <span class="req">*</span></label>
+      <input type="text" id="confirmRecipient" placeholder="e.g. Ramesh Traders">
+    </div>
+    <div class="err" id="confirmErr" style="display:none;"></div>
     <div class="modalbtns">
       <button class="ghostbtn" id="confirmNo">No</button>
       <button class="addbtn dangerbtn" id="confirmYes">Yes, remove</button>
