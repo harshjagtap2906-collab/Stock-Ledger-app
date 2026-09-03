@@ -88,17 +88,15 @@ function currentUserLabel(){
   return user && user.email ? user.email : 'Someone';
 }
 
-async function logHistory(action, description, recipient){
+async function logHistory(action, description){
   if(!db) return;
   try{
-    const entry = {
+    await db.collection('history').add({
       action,
       description,
       user: currentUserLabel(),
       timestamp: firebase.firestore.FieldValue.serverTimestamp()
-    };
-    if(recipient) entry.recipient = recipient;
-    await db.collection('history').add(entry);
+    });
   }catch(e){
     // History logging failures shouldn't block the actual inventory action.
   }
@@ -110,29 +108,23 @@ async function addItem(name, cat, qty){
   logHistory('added', `Added "${data.name}" — ${data.qty} in ${data.category}`);
 }
 
-async function updateItem(id, patch, recipient){
+async function updateItem(id, patch){
   const before = items.find(i => i.id === id);
   await db.collection('materials').doc(id).update(patch);
   if(!before) return;
   if('qty' in patch && patch.qty !== before.qty){
-    if(patch.qty < before.qty && recipient){
-      const amount = before.qty - patch.qty;
-      logHistory('qty_deducted', `"${before.name}" — ${amount} given to ${recipient} (now ${patch.qty})`, recipient);
-    } else {
-      logHistory('qty_changed', `"${before.name}" quantity changed from ${before.qty} to ${patch.qty}`);
-    }
+    logHistory('qty_changed', `"${before.name}" quantity changed from ${before.qty} to ${patch.qty}`);
   }
   if('name' in patch && patch.name !== before.name){
     logHistory('renamed', `Renamed "${before.name}" to "${patch.name}"`);
   }
 }
 
-async function deleteItem(id, recipient){
+async function deleteItem(id){
   const item = items.find(i => i.id === id);
   await db.collection('materials').doc(id).delete();
   if(item){
-    const suffix = recipient ? ` — given to ${recipient}` : '';
-    logHistory('deleted', `Removed "${item.name}" (was ${item.qty} in ${item.category})${suffix}`, recipient);
+    logHistory('deleted', `Removed "${item.name}" (was ${item.qty} in ${item.category})`);
   }
 }
 
@@ -219,12 +211,8 @@ function attachRowHandlers(){
       const id = btn.dataset.id;
       const it = items.find(x => x.id === id);
       if(!it) return;
-      if(btn.dataset.act === 'inc'){
-        updateItem(id, { qty: it.qty + 1 });
-      } else {
-        if(it.qty <= 0) return;
-        openDeductModal(id);
-      }
+      const next = btn.dataset.act === 'inc' ? it.qty + 1 : Math.max(0, it.qty - 1);
+      updateItem(id, { qty: next });
     };
   });
   document.querySelectorAll('.delbtn').forEach(btn => {
@@ -423,55 +411,14 @@ document.getElementById('logoutBtn').onclick = () => {
   firebase.auth().signOut();
 };
 
-let pendingDeductId = null;
-
-function openDeductModal(id){
-  const item = items.find(i => i.id === id);
-  if(!item) return;
-  pendingDeductId = id;
-  document.getElementById('deductModalText').textContent = `Reducing "${item.name}" from ${item.qty} to ${item.qty - 1}.`;
-  document.getElementById('deductRecipient').value = '';
-  document.getElementById('deductErr').style.display = 'none';
-  document.getElementById('deductModal').style.display = 'flex';
-  document.getElementById('deductRecipient').focus();
-}
-
-function closeDeductModal(){
-  pendingDeductId = null;
-  document.getElementById('deductModal').style.display = 'none';
-}
-
-document.getElementById('deductCancel').onclick = closeDeductModal;
-document.getElementById('deductConfirm').onclick = () => {
-  const recipient = document.getElementById('deductRecipient').value.trim();
-  const errEl = document.getElementById('deductErr');
-  if(!recipient){
-    errEl.textContent = 'Enter who this is going to — required to track where stock goes.';
-    errEl.style.display = 'block';
-    return;
-  }
-  const id = pendingDeductId;
-  const it = items.find(x => x.id === id);
-  closeDeductModal();
-  if(it) updateItem(id, { qty: Math.max(0, it.qty - 1) }, recipient);
-};
-document.getElementById('deductModal').addEventListener('click', (e) => {
-  if(e.target.id === 'deductModal') closeDeductModal();
-});
-document.getElementById('deductRecipient').addEventListener('keydown', e => {
-  if(e.key === 'Enter') document.getElementById('deductConfirm').click();
-});
-
 let pendingDeleteId = null;
 
 function openConfirmModal(id){
   const item = items.find(i => i.id === id);
   pendingDeleteId = id;
   document.getElementById('confirmModalText').textContent = item
-    ? `Are you sure you want to remove "${item.name}" (${item.qty} in stock) from your inventory? This can't be undone.`
+    ? `Are you sure you want to remove "${item.name}" from your inventory? This can't be undone.`
     : `Are you sure you want to remove this from your inventory?`;
-  document.getElementById('confirmRecipient').value = '';
-  document.getElementById('confirmErr').style.display = 'none';
   document.getElementById('confirmModal').style.display = 'flex';
 }
 
@@ -482,22 +429,11 @@ function closeConfirmModal(){
 
 document.getElementById('confirmNo').onclick = closeConfirmModal;
 document.getElementById('confirmYes').onclick = () => {
-  const recipient = document.getElementById('confirmRecipient').value.trim();
-  const errEl = document.getElementById('confirmErr');
-  if(!recipient){
-    errEl.textContent = 'Enter who this is going to — required to track where stock goes.';
-    errEl.style.display = 'block';
-    return;
-  }
-  const id = pendingDeleteId;
+  if(pendingDeleteId) deleteItem(pendingDeleteId);
   closeConfirmModal();
-  if(id) deleteItem(id, recipient);
 };
 document.getElementById('confirmModal').addEventListener('click', (e) => {
   if(e.target.id === 'confirmModal') closeConfirmModal();
-});
-document.getElementById('confirmRecipient').addEventListener('keydown', e => {
-  if(e.key === 'Enter') document.getElementById('confirmYes').click();
 });
 
 let historyUnsubscribe = null;
