@@ -188,11 +188,8 @@ header{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;
   box-shadow:0 12px 32px rgba(0,0,0,0.18);
 }
 .modaltitle{font-family:var(--font-display);font-weight:700;font-size:17px;margin-bottom:8px;}
-.modalbody{font-size:14px;color:var(--ink-soft);line-height:1.5;margin-bottom:14px;}
-.modalcard .field{margin-bottom:6px;}
-.modalcard .err{margin-bottom:8px;}
-.req{color:var(--danger);}
-.modalbtns{display:flex;gap:10px;justify-content:flex-end;margin-top:14px;}
+.modalbody{font-size:14px;color:var(--ink-soft);line-height:1.5;margin-bottom:20px;}
+.modalbtns{display:flex;gap:10px;justify-content:flex-end;}
 .dangerbtn{background:var(--danger);}
 
 .historycard{max-width:480px;}
