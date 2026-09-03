@@ -72,22 +72,16 @@ To remove someone's access, delete or disable their account in Firebase
 console → Authentication → Users. To reset a forgotten password, use the
 same screen (click the user, then the options menu). No app update needed
 for either — it takes effect immediately.
-Tracking who stock goes to
-Whenever a material's quantity is reduced (the − button) or a material
-is removed entirely, a popup asks who it's going to — required, can't be
-left blank. Type the customer or recipient's name and confirm. This is how
-the app tracks who your stock was given or sold to, not just that it left
-the shelf.
 Deleting materials safely
-Clicking Remove on any material shows a confirmation popup before anything
-is deleted — you have to enter who it's going to and explicitly confirm
-"Yes, remove" or it cancels. This applies on every device.
+Clicking Remove on any material now shows a confirmation popup before
+anything is deleted — you have to explicitly confirm "Yes, remove" or it
+cancels. This applies on every device.
 Activity history
 The History button opens a running log of every action taken in the
-app — materials added, quantities changed (including who stock was given
-or sold to), renames, removals, and bulk imports — each with who did it
-and when. It updates live and syncs the same way the inventory does, so
-it's a shared record across your whole team, not just one device.
+app — materials added, quantities changed, renames, removals, and bulk
+imports — each with who did it and when. It updates live and syncs the
+same way the inventory does, so it's a shared record across your whole
+team, not just one device.
 Exporting to Excel
 The Export to Excel button still works exactly as before, producing a
 `.csv` file with every material, category, and quantity — handy for
