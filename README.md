@@ -76,6 +76,14 @@ Deleting materials safely
 Clicking Remove on any material now shows a confirmation popup before
 anything is deleted — you have to explicitly confirm "Yes, remove" or it
 cancels. This applies on every device.
+Client name required for every removal
+Both reducing a material's quantity (the "−" button) and removing a
+material entirely (the Remove button) now require you to type in the
+client's name before the action goes through — it's a mandatory field, so
+there's no way to skip it. This works identically on mobile and desktop,
+since it's the same shared app. The client name is saved into the
+Activity History log alongside the action, so you always have a record
+of who received what.
 Activity history
 The History button opens a running log of every action taken in the
 app — materials added, quantities changed, renames, removals, and bulk
