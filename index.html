@@ -105,13 +105,18 @@
 
 </div>
 
-<div class="modalbg" id="confirmModal" style="display:none;">
+<div class="modalbg" id="actionModal" style="display:none;">
   <div class="modalcard">
-    <div class="modaltitle">Remove this material?</div>
-    <div class="modalbody" id="confirmModalText">Are you sure you want to remove this from your inventory?</div>
+    <div class="modaltitle" id="actionModalTitle">Remove this material?</div>
+    <div class="modalbody" id="actionModalText">Are you sure you want to remove this from your inventory?</div>
+    <div class="field">
+      <label for="actionClientName">Client Name (required)</label>
+      <input type="text" id="actionClientName" placeholder="Who is this material going to?">
+    </div>
+    <div class="err" id="actionModalErr" style="display:none;"></div>
     <div class="modalbtns">
-      <button class="ghostbtn" id="confirmNo">No</button>
-      <button class="addbtn dangerbtn" id="confirmYes">Yes, remove</button>
+      <button class="ghostbtn" id="actionModalCancel">Cancel</button>
+      <button class="addbtn" id="actionModalConfirm">Confirm</button>
     </div>
   </div>
 </div>
