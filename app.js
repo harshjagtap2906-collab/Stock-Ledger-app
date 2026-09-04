@@ -120,12 +120,20 @@ async function updateItem(id, patch){
   }
 }
 
-async function deleteItem(id){
+async function deleteItemWithClient(id, client){
   const item = items.find(i => i.id === id);
   await db.collection('materials').doc(id).delete();
   if(item){
-    logHistory('deleted', `Removed "${item.name}" (was ${item.qty} in ${item.category})`);
+    logHistory('deleted', `Removed "${item.name}" (was ${item.qty} in ${item.category}) — given to: ${client}`);
   }
+}
+
+async function decrementWithClient(id, client){
+  const before = items.find(i => i.id === id);
+  if(!before) return;
+  const newQty = Math.max(0, before.qty - 1);
+  await db.collection('materials').doc(id).update({ qty: newQty });
+  logHistory('qty_changed', `"${before.name}" quantity changed from ${before.qty} to ${newQty} — given to: ${client}`);
 }
 
 async function clearAll(){
@@ -211,12 +219,16 @@ function attachRowHandlers(){
       const id = btn.dataset.id;
       const it = items.find(x => x.id === id);
       if(!it) return;
-      const next = btn.dataset.act === 'inc' ? it.qty + 1 : Math.max(0, it.qty - 1);
-      updateItem(id, { qty: next });
+      if(btn.dataset.act === 'inc'){
+        updateItem(id, { qty: it.qty + 1 });
+      } else {
+        if(it.qty <= 0) return;
+        openActionModal('decrement', id);
+      }
     };
   });
   document.querySelectorAll('.delbtn').forEach(btn => {
-    btn.onclick = () => openConfirmModal(btn.dataset.id);
+    btn.onclick = () => openActionModal('delete', btn.dataset.id);
   });
   document.querySelectorAll('.mname input').forEach(inp => {
     inp.onchange = () => {
@@ -411,29 +423,70 @@ document.getElementById('logoutBtn').onclick = () => {
   firebase.auth().signOut();
 };
 
-let pendingDeleteId = null;
+let pendingAction = null; // { type: 'decrement' | 'delete', id }
 
-function openConfirmModal(id){
+function openActionModal(type, id){
   const item = items.find(i => i.id === id);
-  pendingDeleteId = id;
-  document.getElementById('confirmModalText').textContent = item
-    ? `Are you sure you want to remove "${item.name}" from your inventory? This can't be undone.`
-    : `Are you sure you want to remove this from your inventory?`;
-  document.getElementById('confirmModal').style.display = 'flex';
+  if(!item) return;
+  pendingAction = { type, id };
+
+  const titleEl = document.getElementById('actionModalTitle');
+  const textEl = document.getElementById('actionModalText');
+  const confirmBtn = document.getElementById('actionModalConfirm');
+  const nameInput = document.getElementById('actionClientName');
+  const errEl = document.getElementById('actionModalErr');
+
+  nameInput.value = '';
+  errEl.style.display = 'none';
+
+  if(type === 'delete'){
+    titleEl.textContent = 'Remove this material?';
+    textEl.textContent = `Are you sure you want to remove "${item.name}" from your inventory? This can't be undone.`;
+    confirmBtn.textContent = 'Yes, remove';
+    confirmBtn.classList.add('dangerbtn');
+  } else {
+    titleEl.textContent = 'Reduce quantity';
+    textEl.textContent = `Reducing "${item.name}" from ${item.qty} to ${item.qty - 1}.`;
+    confirmBtn.textContent = 'Confirm';
+    confirmBtn.classList.remove('dangerbtn');
+  }
+
+  document.getElementById('actionModal').style.display = 'flex';
+  nameInput.focus();
 }
 
-function closeConfirmModal(){
-  pendingDeleteId = null;
-  document.getElementById('confirmModal').style.display = 'none';
+function closeActionModal(){
+  pendingAction = null;
+  document.getElementById('actionModal').style.display = 'none';
 }
 
-document.getElementById('confirmNo').onclick = closeConfirmModal;
-document.getElementById('confirmYes').onclick = () => {
-  if(pendingDeleteId) deleteItem(pendingDeleteId);
-  closeConfirmModal();
+document.getElementById('actionModalCancel').onclick = closeActionModal;
+document.getElementById('actionModalConfirm').onclick = async () => {
+  const nameInput = document.getElementById('actionClientName');
+  const errEl = document.getElementById('actionModalErr');
+  const client = nameInput.value.trim();
+
+  if(!client){
+    errEl.textContent = 'Client name is required — enter who this material is going to.';
+    errEl.style.display = 'block';
+    nameInput.focus();
+    return;
+  }
+  if(!pendingAction) return;
+
+  const { type, id } = pendingAction;
+  if(type === 'delete'){
+    await deleteItemWithClient(id, client);
+  } else {
+    await decrementWithClient(id, client);
+  }
+  closeActionModal();
 };
-document.getElementById('confirmModal').addEventListener('click', (e) => {
-  if(e.target.id === 'confirmModal') closeConfirmModal();
+document.getElementById('actionModal').addEventListener('click', (e) => {
+  if(e.target.id === 'actionModal') closeActionModal();
+});
+document.getElementById('actionClientName').addEventListener('keydown', e => {
+  if(e.key === 'Enter') document.getElementById('actionModalConfirm').click();
 });
 
 let historyUnsubscribe = null;
